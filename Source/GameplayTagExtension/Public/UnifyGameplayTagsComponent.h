@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
-#include "GameplayEffectTypes.h"
 #include "UnifyGameplayTagsInterface.h"
 #include "UnifyGameplayTagsComponent.generated.h"
 

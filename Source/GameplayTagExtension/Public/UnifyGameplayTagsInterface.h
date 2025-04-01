@@ -9,11 +9,16 @@
 
 // This class does not need to be modified.
 UINTERFACE(BlueprintType)
+class GAMEPLAYTAGEXTENSION_API UUnifyGameplayTagsInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 class GAMEPLAYTAGEXTENSION_API IUnifyGameplayTagsInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	/** Gets all gameplay tags in the implementing object's tag container */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "GameplayTags")

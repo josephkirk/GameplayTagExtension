@@ -26,19 +26,15 @@ public class GameplayTagExtension : ModuleRules
 			new string[]
 			{
 				"Core",
-				// ... add other public dependencies that you statically link with here ...
-			}
-			);
+				"Engine",
+				"GameplayTags"
+			});
 			
 		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
-				// ... add private dependencies that you statically link with here ...	
 			}
 			);
 		
