@@ -35,6 +35,7 @@ public class GameplayTagExtension : ModuleRules
 			new string[]
 			{
 				"CoreUObject",
+				"GameplayMessageRuntime",
 			}
 			);
 		

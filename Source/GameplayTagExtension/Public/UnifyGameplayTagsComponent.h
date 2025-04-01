@@ -6,7 +6,25 @@
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
 #include "UnifyGameplayTagsInterface.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "UnifyGameplayTagsComponent.generated.h"
+
+/**
+ * Message struct for UnifyGameplayTags communication
+ */
+USTRUCT(BlueprintType)
+struct GAMEPLAYTAGEXTENSION_API FUnifyGameplayTag
+{
+	GENERATED_BODY()
+
+	/** The object that broadcast the message */
+	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
+	UObject* SourceObject = nullptr;
+
+	/** Container of gameplay tags being communicated */
+	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
+	FGameplayTagContainer Tags;
+};
 
 /**
  * Component that implements the UnifyGameplayTagsInterface
@@ -40,8 +58,43 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
 	FOnTagContainerChanged OnGameplayTagContainerChanged;
 
+	/** Delegate signature for message receive events */
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMessageReceiveDelegate, const FUnifyGameplayTag&, Message);
+
+	/** 
+	 * Delegate that is broadcast when receiving a message on the GameplayMessageTag channel 
+	 * @param Message The gameplay tag message received
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
+	FOnMessageReceiveDelegate OnMessageReceive;
+
+	/**
+	 * Broadcasts the current tags of this component as a message on the GameplayMessageTag channel
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
+	void BroadcastMessage();
+
+	// Begin UActorComponent interface
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	// End UActorComponent interface
+
 protected:
 	/** Container of gameplay tags for this component */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags")
 	FGameplayTagContainer GameplayTagContainer;
+
+	/** The tag channel to listen to and broadcast on */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message")
+	FGameplayTag GameplayMessageTag;
+
+	/** Handle for the registered message listener */
+	FGameplayMessageListenerHandle MessageListenerHandle;
+
+	/** 
+	 * Internal handler for when a gameplay tag message is received 
+	 * @param Channel The channel the message was sent on
+	 * @param Message The message data received
+	 */
+	void HandleGameplayTagMessage(FGameplayTag Channel, const FUnifyGameplayTag& Message);
 };

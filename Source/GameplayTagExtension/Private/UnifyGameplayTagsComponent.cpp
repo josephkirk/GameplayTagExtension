@@ -1,12 +1,64 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "UnifyGameplayTagsComponent.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 
 // Sets default values for this component's properties
 UUnifyGameplayTagsComponent::UUnifyGameplayTagsComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.
 	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UUnifyGameplayTagsComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
+	// Register for gameplay tag messages if we have a valid message tag
+	if (GameplayMessageTag.IsValid())
+	{
+		MessageListenerHandle = MessageSystem.RegisterListener<FUnifyGameplayTag>(
+			GameplayMessageTag,
+			this,
+			&UUnifyGameplayTagsComponent::HandleGameplayTagMessage);
+	}
+}
+
+void UUnifyGameplayTagsComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Unregister the message listener
+	if (MessageListenerHandle.IsValid())
+	{
+		MessageListenerHandle.Unregister();
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(FGameplayTag Channel, const FUnifyGameplayTag& Message)
+{
+	// Broadcast the entire message struct
+	OnMessageReceive.Broadcast(Message);
+}
+
+void UUnifyGameplayTagsComponent::BroadcastMessage()
+{
+	// Only broadcast if we have a valid message tag
+	if (!GameplayMessageTag.IsValid())
+	{
+		return;
+	}
+	
+	{
+		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
+		// Create and populate the message struct
+		FUnifyGameplayTag Message;
+		Message.SourceObject = Cast<UObject>(GetOwner());
+		Message.Tags = GameplayTagContainer;
+
+		// Broadcast the message
+		MessageSystem.BroadcastMessage(GameplayMessageTag, Message);
+	}
 }
 
 FGameplayTagContainer UUnifyGameplayTagsComponent::GetGameplayTagContainer_Implementation() const
