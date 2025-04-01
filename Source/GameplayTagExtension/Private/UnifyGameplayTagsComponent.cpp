@@ -43,22 +43,37 @@ void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(FGameplayTag Channel,
 
 void UUnifyGameplayTagsComponent::BroadcastMessage()
 {
+	BroadcastMessageWithCustomData(MessageData);
+}
+
+void UUnifyGameplayTagsComponent::BroadcastMessageWithCustomData(UObject* Data)
+{
 	// Only broadcast if we have a valid message tag
 	if (!GameplayMessageTag.IsValid())
 	{
 		return;
 	}
-	
+
 	{
 		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
 		// Create and populate the message struct
 		FUnifyGameplayTag Message;
 		Message.SourceObject = Cast<UObject>(GetOwner());
 		Message.Tags = GameplayTagContainer;
-
+		Message.DataObject = Data;
 		// Broadcast the message
 		MessageSystem.BroadcastMessage(GameplayMessageTag, Message);
 	}
+}
+
+void UUnifyGameplayTagsComponent::SetGameplayMessageTag(FGameplayTag MessageTag)
+{
+	GameplayMessageTag = MessageTag;
+}
+
+void UUnifyGameplayTagsComponent::SetGameplayMessageData(UObject* DataStruct)
+{
+	MessageData = MessageData;
 }
 
 FGameplayTagContainer UUnifyGameplayTagsComponent::GetGameplayTagContainer_Implementation() const

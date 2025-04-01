@@ -21,6 +21,10 @@ struct GAMEPLAYTAGEXTENSION_API FUnifyGameplayTag
 	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
 	UObject* SourceObject = nullptr;
 
+	/** The object that broadcast the message */
+	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
+	UObject* DataObject = nullptr;
+
 	/** Container of gameplay tags being communicated */
 	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
 	FGameplayTagContainer Tags;
@@ -74,6 +78,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
 	void BroadcastMessage();
 
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
+	void BroadcastMessageWithCustomData(UObject* Data);
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
+	void SetGameplayMessageTag(FGameplayTag MessageTag);
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
+	void SetGameplayMessageData(UObject* Data);
+
 	// Begin UActorComponent interface
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -87,6 +100,9 @@ protected:
 	/** The tag channel to listen to and broadcast on */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message")
 	FGameplayTag GameplayMessageTag;
+
+	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags|Message")
+	UObject* MessageData;
 
 	/** Handle for the registered message listener */
 	FGameplayMessageListenerHandle MessageListenerHandle;
