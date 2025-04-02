@@ -9,6 +9,15 @@
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "UnifyGameplayTagsComponent.generated.h"
 
+
+UENUM()
+enum class TagChangeType : uint8
+{
+	Set,
+	Add,
+	Remove,
+	Clear
+};
 /**
  * Component that implements the UnifyGameplayTagsInterface
  * Add this component to any actor that needs to work with gameplay tags
@@ -35,7 +44,12 @@ public:
 	virtual void ClearGameplayTags_Implementation() override;
 	// End IUnifyGameplayTagsInterface
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTagContainerChanged);
+	/** 
+	 * Delegate signature for tag container change events
+	 * @param TagContainer The new tag container
+	 * @param ChangeType The type of change that occurred
+	 */
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTagContainerChanged, const FGameplayTagContainer&, TagContainer, TagChangeType, ChangeType);
 
 	/** Delegate that is broadcast whenever the tag container is changed */
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
