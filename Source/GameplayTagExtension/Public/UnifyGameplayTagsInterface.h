@@ -4,8 +4,30 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "StructUtils/InstancedStruct.h"
 #include "UObject/Interface.h"
 #include "UnifyGameplayTagsInterface.generated.h"
+
+/**
+ * Message struct for UnifyGameplayTags communication
+ */
+USTRUCT(BlueprintType)
+struct GAMEPLAYTAGEXTENSION_API FUnifyGameplayTag
+{
+	GENERATED_BODY()
+
+	/** The object that broadcast the message */
+	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
+	UObject* SourceObject = nullptr;
+
+	/** Optional payload for the event. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	FInstancedStruct Payload;
+
+	/** Container of gameplay tags being communicated */
+	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
+	FGameplayTagContainer Tags;
+};
 
 // This class does not need to be modified.
 UINTERFACE(BlueprintType)
@@ -59,4 +81,5 @@ public:
 	/** Clears all gameplay tags in the implementing object's tag container */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "GameplayTags")
 	void ClearGameplayTags();
+
 };

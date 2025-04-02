@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "UnifyGameplayTagsComponent.h"
+#include "UnifyGameplayTagsFunctionLibrary.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
 // Sets default values for this component's properties
@@ -41,39 +42,31 @@ void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(FGameplayTag Channel,
 	OnMessageReceive.Broadcast(Message);
 }
 
+
 void UUnifyGameplayTagsComponent::BroadcastMessage()
 {
 	BroadcastMessageWithCustomData(MessageData);
 }
 
-void UUnifyGameplayTagsComponent::BroadcastMessageWithCustomData(UObject* Data)
+void UUnifyGameplayTagsComponent::BroadcastMessageWithCustomData(FInstancedStruct Payload)
 {
 	// Only broadcast if we have a valid message tag
 	if (!GameplayMessageTag.IsValid())
 	{
 		return;
 	}
-
-	{
-		UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-		// Create and populate the message struct
-		FUnifyGameplayTag Message;
-		Message.SourceObject = Cast<UObject>(GetOwner());
-		Message.Tags = GameplayTagContainer;
-		Message.DataObject = Data;
-		// Broadcast the message
-		MessageSystem.BroadcastMessage(GameplayMessageTag, Message);
-	}
+	
+	FUnifyGameplayTag Message;
+	Message.SourceObject = Cast<UObject>(GetOwner());
+	Message.Tags = GameplayTagContainer;
+	Message.Payload = Payload;
+	// Broadcast the message
+	UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage(this, GameplayMessageTag, FInstancedStruct::Make(Message));
 }
 
 void UUnifyGameplayTagsComponent::SetGameplayMessageTag(FGameplayTag MessageTag)
 {
 	GameplayMessageTag = MessageTag;
-}
-
-void UUnifyGameplayTagsComponent::SetGameplayMessageData(UObject* DataStruct)
-{
-	MessageData = MessageData;
 }
 
 FGameplayTagContainer UUnifyGameplayTagsComponent::GetGameplayTagContainer_Implementation() const

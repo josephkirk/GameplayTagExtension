@@ -10,27 +10,6 @@
 #include "UnifyGameplayTagsComponent.generated.h"
 
 /**
- * Message struct for UnifyGameplayTags communication
- */
-USTRUCT(BlueprintType)
-struct GAMEPLAYTAGEXTENSION_API FUnifyGameplayTag
-{
-	GENERATED_BODY()
-
-	/** The object that broadcast the message */
-	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
-	UObject* SourceObject = nullptr;
-
-	/** The object that broadcast the message */
-	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
-	UObject* DataObject = nullptr;
-
-	/** Container of gameplay tags being communicated */
-	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
-	FGameplayTagContainer Tags;
-};
-
-/**
  * Component that implements the UnifyGameplayTagsInterface
  * Add this component to any actor that needs to work with gameplay tags
  */
@@ -79,13 +58,10 @@ public:
 	void BroadcastMessage();
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
-	void BroadcastMessageWithCustomData(UObject* Data);
+	void BroadcastMessageWithCustomData(FInstancedStruct Payload);
 
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
 	void SetGameplayMessageTag(FGameplayTag MessageTag);
-
-	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
-	void SetGameplayMessageData(UObject* Data);
 
 	// Begin UActorComponent interface
 	virtual void BeginPlay() override;
@@ -101,8 +77,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message")
 	FGameplayTag GameplayMessageTag;
 
-	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags|Message")
-	UObject* MessageData;
+	/** Optional payload for the event. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
+	FInstancedStruct MessageData;
 
 	/** Handle for the registered message listener */
 	FGameplayMessageListenerHandle MessageListenerHandle;

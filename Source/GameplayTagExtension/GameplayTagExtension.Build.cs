@@ -27,7 +27,8 @@ public class GameplayTagExtension : ModuleRules
 			{
 				"Core",
 				"Engine",
-				"GameplayTags"
+				"GameplayTags",
+				"StructUtils"
 			});
 			
 		
