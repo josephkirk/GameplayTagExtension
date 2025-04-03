@@ -3,6 +3,7 @@
 #include "UnifyGameplayTagsComponent.h"
 #include "UnifyGameplayTagsFunctionLibrary.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "UnifyGameplayTagsSubsystem.h"
 
 // Sets default values for this component's properties
 UUnifyGameplayTagsComponent::UUnifyGameplayTagsComponent()
@@ -23,6 +24,15 @@ void UUnifyGameplayTagsComponent::BeginPlay()
 			this,
 			&UUnifyGameplayTagsComponent::HandleGameplayTagMessage);
 	}
+	
+	// Register this component with the UnifyGameplayTagsSubsystem
+	if (UWorld* World = GetWorld())
+	{
+		if (UUnifyGameplayTagsSubsystem* Subsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>())
+		{
+			Subsystem->RegisterComponent(this);
+		}
+	}
 }
 
 void UUnifyGameplayTagsComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -31,6 +41,15 @@ void UUnifyGameplayTagsComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	if (MessageListenerHandle.IsValid())
 	{
 		MessageListenerHandle.Unregister();
+	}
+	
+	// Unregister this component from the UnifyGameplayTagsSubsystem
+	if (UWorld* World = GetWorld())
+	{
+		if (UUnifyGameplayTagsSubsystem* Subsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>())
+		{
+			Subsystem->UnregisterComponent(this);
+		}
 	}
 
 	Super::EndPlay(EndPlayReason);
