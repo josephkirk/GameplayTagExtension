@@ -3,22 +3,24 @@
 #include "EngineUtils.h"
 #include "UnifyGameplayTagsComponent.h"
 #include "Engine/Engine.h"
+#include "Subsystems/SubsystemBlueprintLibrary.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
-void UUnifyGameplayTagsFunctionLibrary::BroadcastGenericGameplayTagMessage(const UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
+void UUnifyGameplayTagsFunctionLibrary::BroadcastGenericGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
 {
-    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
-    MessageSystem.BroadcastMessage(Channel, MessagePayload);
+    UGameplayMessageSubsystem* MessageSystem = Cast<UGameplayMessageSubsystem>(USubsystemBlueprintLibrary::GetWorldSubsystem( WorldContextObject, UGameplayMessageSubsystem::StaticClass()));
+	check(MessageSystem)
+    MessageSystem->BroadcastMessage(Channel, MessagePayload);
 }
 
-void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage(const UObject* WorldContextObject,
+void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage( UObject* WorldContextObject,
     const FGameplayTag Channel, const FUnifyGameplayTag& Message)
 {
     UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
     MessageSystem.BroadcastMessage(Channel, Message);
 }
 
-FGameplayMessageListenerHandle UUnifyGameplayTagsFunctionLibrary::RegisterGenericGameplayTagMessageListener(const UObject* WorldContextObject, UObject* Object, const FGameplayTag Channel)
+FGameplayMessageListenerHandle UUnifyGameplayTagsFunctionLibrary::RegisterGenericGameplayTagMessageListener( UObject* WorldContextObject, UObject* Object, const FGameplayTag Channel)
 {
     UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
     AActor* Actor = Cast<AActor>(Object);
@@ -35,7 +37,7 @@ FGameplayMessageListenerHandle UUnifyGameplayTagsFunctionLibrary::RegisterGeneri
     return FGameplayMessageListenerHandle();
 }
 
-void UUnifyGameplayTagsFunctionLibrary::UnregisterGenericGameplayTagMessageListener(const UObject* WorldContextObject, FGameplayMessageListenerHandle Handle)
+void UUnifyGameplayTagsFunctionLibrary::UnregisterGenericGameplayTagMessageListener( UObject* WorldContextObject, FGameplayMessageListenerHandle Handle)
 {
     UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
     if (Handle.IsValid())
