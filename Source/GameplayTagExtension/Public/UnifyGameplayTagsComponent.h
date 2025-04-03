@@ -58,12 +58,18 @@ public:
 	/** Delegate signature for message receive events */
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMessageReceiveDelegate, const FUnifyGameplayTag&, Message);
 
+	/** Delegate signature for genericmessage receive events */
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGenericMessageReceiveDelegate, const FInstancedStruct&, Message);
+
 	/** 
 	 * Delegate that is broadcast when receiving a message on the GameplayMessageTag channel 
 	 * @param Message The gameplay tag message received
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
 	FOnMessageReceiveDelegate OnMessageReceive;
+
+	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
+	FOnGenericMessageReceiveDelegate OnGenericMessageReceive;
 
 	/**
 	 * Broadcasts the current tags of this component as a message on the GameplayMessageTag channel
@@ -104,4 +110,6 @@ protected:
 	 * @param Message The message data received
 	 */
 	void HandleGameplayTagMessage(FGameplayTag Channel, const FUnifyGameplayTag& Message);
+	void HandleGameplayTagMessageGeneric(FGameplayTag Channel, const FInstancedStruct& Message);
+	friend class UUnifyGameplayTagsFunctionLibrary;
 };

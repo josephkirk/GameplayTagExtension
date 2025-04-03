@@ -24,7 +24,18 @@ class GAMEPLAYTAGEXTENSION_API UUnifyGameplayTagsFunctionLibrary : public UBluep
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
-	static void BroadcastGameplayTagMessage(const UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload);
+	static void BroadcastGenericGameplayTagMessage(const UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload);
+
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
+	static void BroadcastGameplayTagMessage(const UObject* WorldContextObject,const FGameplayTag Channel, const FUnifyGameplayTag& Message);
+	
+    /* Register Object with generic gameplay tag message listener. Use OnGenericMessageReceive delegate on UUnifyGameplayTagsComponent to handle messages. Remember to UnregisterGenericGameplayTagMessageListener when done */
+    UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
+    static FGameplayMessageListenerHandle RegisterGenericGameplayTagMessageListener(const UObject* WorldContextObject, UObject* Object, const FGameplayTag Channel);
+
+    /* Unregister Object with generic gameplay tag message listener */
+    UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
+    static void UnregisterGenericGameplayTagMessageListener(const UObject* WorldContextObject, FGameplayMessageListenerHandle Handle);
 
 	/** Get the gameplay tag component for the specified actor */
 	UFUNCTION(BlueprintPure, Category = "GameplayTags")

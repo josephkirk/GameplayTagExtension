@@ -61,6 +61,11 @@ void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(FGameplayTag Channel,
 	OnMessageReceive.Broadcast(Message);
 }
 
+void UUnifyGameplayTagsComponent::HandleGameplayTagMessageGeneric(FGameplayTag Channel, const FInstancedStruct& Message)
+{
+	// Broadcast the entire message struct
+	OnGenericMessageReceive.Broadcast(Message);
+}
 
 void UUnifyGameplayTagsComponent::BroadcastMessage()
 {
@@ -80,7 +85,8 @@ void UUnifyGameplayTagsComponent::BroadcastMessageWithCustomData(FInstancedStruc
 	Message.Tags = GameplayTagContainer;
 	Message.Payload = Payload;
 	// Broadcast the message
-	UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage(this, GameplayMessageTag, FInstancedStruct::Make(Message));
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
+	MessageSystem.BroadcastMessage(GameplayMessageTag, Message);
 }
 
 void UUnifyGameplayTagsComponent::SetGameplayMessageTag(FGameplayTag MessageTag)

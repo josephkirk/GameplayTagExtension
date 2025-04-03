@@ -5,9 +5,43 @@
 #include "Engine/Engine.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
-void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage(const UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
+void UUnifyGameplayTagsFunctionLibrary::BroadcastGenericGameplayTagMessage(const UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
 {
-    UGameplayMessageSubsystem::Get(WorldContextObject).BroadcastMessage(Channel, MessagePayload);
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
+    MessageSystem.BroadcastMessage(Channel, MessagePayload);
+}
+
+void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage(const UObject* WorldContextObject,
+    const FGameplayTag Channel, const FUnifyGameplayTag& Message)
+{
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
+    MessageSystem.BroadcastMessage(Channel, Message);
+}
+
+FGameplayMessageListenerHandle UUnifyGameplayTagsFunctionLibrary::RegisterGenericGameplayTagMessageListener(const UObject* WorldContextObject, UObject* Object, const FGameplayTag Channel)
+{
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
+    AActor* Actor = Cast<AActor>(Object);
+    
+    if (Channel.IsValid() && Actor != nullptr)
+    {
+        UUnifyGameplayTagsComponent* Component = GetGameplayTagComponent(Actor);
+        if (Component != nullptr)
+        {
+            FGameplayMessageListenerHandle Handle = MessageSystem.RegisterListener<FInstancedStruct>(Channel, Component, &UUnifyGameplayTagsComponent::HandleGameplayTagMessageGeneric);
+            return Handle;
+        }
+    }
+    return FGameplayMessageListenerHandle();
+}
+
+void UUnifyGameplayTagsFunctionLibrary::UnregisterGenericGameplayTagMessageListener(const UObject* WorldContextObject, FGameplayMessageListenerHandle Handle)
+{
+    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
+    if (Handle.IsValid())
+    {
+        MessageSystem.UnregisterListener(Handle);
+    }
 }
 
 UUnifyGameplayTagsComponent* UUnifyGameplayTagsFunctionLibrary::GetGameplayTagComponent(const AActor* Actor)
