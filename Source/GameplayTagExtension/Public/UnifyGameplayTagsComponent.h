@@ -11,7 +11,7 @@
 
 
 UENUM()
-enum class TagChangeType : uint8
+enum class ETagChangeType : uint8
 {
 	Set,
 	Add,
@@ -49,7 +49,7 @@ public:
 	 * @param TagContainer The new tag container
 	 * @param ChangeType The type of change that occurred
 	 */
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTagContainerChanged, const FGameplayTagContainer&, TagContainer, TagChangeType, ChangeType);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTagContainerChanged, const FGameplayTagContainer&, TagContainer, ETagChangeType, ChangeType);
 
 	/** Delegate that is broadcast whenever the tag container is changed */
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")

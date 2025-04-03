@@ -77,7 +77,7 @@ FGameplayTagContainer UUnifyGameplayTagsComponent::GetGameplayTagContainer_Imple
 void UUnifyGameplayTagsComponent::SetGameplayTagContainer_Implementation(const FGameplayTagContainer& NewTagContainer)
 {
 	GameplayTagContainer = NewTagContainer;
-	OnGameplayTagContainerChanged.Broadcast(GameplayTagContainer, TagChangeType::Set);
+	OnGameplayTagContainerChanged.Broadcast(GameplayTagContainer, ETagChangeType::Set);
 }
 
 void UUnifyGameplayTagsComponent::AddGameplayTag_Implementation(const FGameplayTag& TagToAdd)
@@ -88,7 +88,7 @@ void UUnifyGameplayTagsComponent::AddGameplayTag_Implementation(const FGameplayT
 	}
 	
 	GameplayTagContainer.AddTag(TagToAdd);
-	OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), TagChangeType::Add);
+	OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), ETagChangeType::Add);
 }
 
 void UUnifyGameplayTagsComponent::AddGameplayTags_Implementation(const FGameplayTagContainer& TagsToAdd)
@@ -99,7 +99,7 @@ void UUnifyGameplayTagsComponent::AddGameplayTags_Implementation(const FGameplay
 	}
 	
 	GameplayTagContainer.AppendTags(TagsToAdd);
-	OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), TagChangeType::Add);
+	OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), ETagChangeType::Add);
 }
 
 void UUnifyGameplayTagsComponent::RemoveGameplayTag_Implementation(const FGameplayTag& TagToRemove)
@@ -110,7 +110,7 @@ void UUnifyGameplayTagsComponent::RemoveGameplayTag_Implementation(const FGamepl
 	}
 	
 	GameplayTagContainer.RemoveTag(TagToRemove);
-	OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), TagChangeType::Remove);
+	OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), ETagChangeType::Remove);
 }
 
 void UUnifyGameplayTagsComponent::RemoveGameplayTags_Implementation(const FGameplayTagContainer& TagsToRemove)
@@ -132,7 +132,7 @@ void UUnifyGameplayTagsComponent::RemoveGameplayTags_Implementation(const FGamep
 	
 	if (bAnyRemoved)
 	{
-		OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), TagChangeType::Remove);
+		OnGameplayTagContainerChanged.Broadcast(FGameplayTagContainer(GameplayTagContainer), ETagChangeType::Remove);
 	}
 }
 
@@ -157,6 +157,6 @@ void UUnifyGameplayTagsComponent::ClearGameplayTags_Implementation()
 	{
 		FGameplayTagContainer OldContainer = FGameplayTagContainer(GameplayTagContainer);
 		GameplayTagContainer.Reset();
-		OnGameplayTagContainerChanged.Broadcast(OldContainer, TagChangeType::Clear);
+		OnGameplayTagContainerChanged.Broadcast(OldContainer, ETagChangeType::Clear);
 	}
 }
