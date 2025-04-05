@@ -24,19 +24,8 @@ class GAMEPLAYTAGEXTENSION_API UUnifyGameplayTagsFunctionLibrary : public UBluep
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
-	static void BroadcastGenericGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload);
-
-	UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
 	static void BroadcastGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FUnifyGameplayTag& Message);
 	
-    /* Register Object with generic gameplay tag message listener. Use OnGenericMessageReceive delegate on UUnifyGameplayTagsComponent to handle messages. Remember to UnregisterGenericGameplayTagMessageListener when done */
-    UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
-    static FGameplayMessageListenerHandle RegisterGenericGameplayTagMessageListener( UObject* WorldContextObject, UObject* Object, const FGameplayTag Channel);
-
-    /* Unregister Object with generic gameplay tag message listener */
-    UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
-    static void UnregisterGenericGameplayTagMessageListener( UObject* WorldContextObject, FGameplayMessageListenerHandle Handle);
-
 	/** Get the gameplay tag component for the specified actor */
 	UFUNCTION(BlueprintPure, Category = "GameplayTags")
 	static UUnifyGameplayTagsComponent* GetGameplayTagComponent(const AActor* Actor);
@@ -53,6 +42,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Actor",  meta=(WorldContext="WorldContextObject"))
 	static void GetAllActorsWithGameplayTags(const UObject* WorldContextObject, const FGameplayTagContainer TagsToCheck, TArray<AActor*>& OutActors);
 
+	/** Get All actors of class with gameplay tags */
+	UFUNCTION(BlueprintCallable, Category="Actor",  meta=(WorldContext="WorldContextObject", DeterminesOutputType="ActorClass", DynamicOutputParam="OutActors"))
+	static void GetAllActorsOfClassWithGameplayTags(const UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, const FGameplayTagContainer TagsToCheck, TArray<AActor*>& OutActors);
+	
     /** Check if actor have Gameplay tags with enum check type of any or exact*/
     UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta = (WorldContext = "WorldContextObject"))
     static bool IsActorHasGameplayTags(const UObject* WorldContextObject, const AActor* Actor, const FGameplayTagContainer TagsToCheck, EGameplayTagCheckType CheckType);

@@ -6,44 +6,12 @@
 #include "Subsystems/SubsystemBlueprintLibrary.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
-void UUnifyGameplayTagsFunctionLibrary::BroadcastGenericGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
-{
-    UGameplayMessageSubsystem* MessageSystem = Cast<UGameplayMessageSubsystem>(USubsystemBlueprintLibrary::GetWorldSubsystem( WorldContextObject, UGameplayMessageSubsystem::StaticClass()));
-	check(MessageSystem)
-    MessageSystem->BroadcastMessage(Channel, MessagePayload);
-}
 
 void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage( UObject* WorldContextObject,
     const FGameplayTag Channel, const FUnifyGameplayTag& Message)
 {
     UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
     MessageSystem.BroadcastMessage(Channel, Message);
-}
-
-FGameplayMessageListenerHandle UUnifyGameplayTagsFunctionLibrary::RegisterGenericGameplayTagMessageListener( UObject* WorldContextObject, UObject* Object, const FGameplayTag Channel)
-{
-    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
-    AActor* Actor = Cast<AActor>(Object);
-    
-    if (Channel.IsValid() && Actor != nullptr)
-    {
-        UUnifyGameplayTagsComponent* Component = GetGameplayTagComponent(Actor);
-        if (Component != nullptr)
-        {
-            FGameplayMessageListenerHandle Handle = MessageSystem.RegisterListener<FInstancedStruct>(Channel, Component, &UUnifyGameplayTagsComponent::HandleGameplayTagMessageGeneric);
-            return Handle;
-        }
-    }
-    return FGameplayMessageListenerHandle();
-}
-
-void UUnifyGameplayTagsFunctionLibrary::UnregisterGenericGameplayTagMessageListener( UObject* WorldContextObject, FGameplayMessageListenerHandle Handle)
-{
-    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
-    if (Handle.IsValid())
-    {
-        MessageSystem.UnregisterListener(Handle);
-    }
 }
 
 UUnifyGameplayTagsComponent* UUnifyGameplayTagsFunctionLibrary::GetGameplayTagComponent(const AActor* Actor)
@@ -92,6 +60,33 @@ void UUnifyGameplayTagsFunctionLibrary::GetAllActorsWithGameplayTags(const UObje
             {
                 OutActors.Add(Actor);
             }
+		}
+	}
+}
+
+void UUnifyGameplayTagsFunctionLibrary::GetAllActorsOfClassWithGameplayTags(const UObject* WorldContextObject, TSubclassOf<AActor> ActorClass, const FGameplayTagContainer TagsToCheck, TArray<AActor*>& OutActors)
+{
+	QUICK_SCOPE_CYCLE_COUNTER(UGameplayStatics_GetAllActorsOFClassWithGameplayTag);
+	OutActors.Reset();
+
+	// We do nothing if no tag is provided, rather than giving ALL actors!
+	if (TagsToCheck.IsEmpty())
+	{
+		return;
+	}
+	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		for (TActorIterator<AActor> It(World, ActorClass); It; ++It)
+		{
+			AActor* Actor = *It;
+			if (Actor->IsA(ActorClass))
+			{
+				UUnifyGameplayTagsComponent* Component = GetGameplayTagComponent(Actor);
+				if (Component && Component->HasAnyGameplayTags(TagsToCheck))
+				{
+					OutActors.Add(Actor);
+				}
+			}
 		}
 	}
 }

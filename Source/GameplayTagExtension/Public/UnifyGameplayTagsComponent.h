@@ -18,6 +18,14 @@ enum class ETagChangeType : uint8
 	Remove,
 	Clear
 };
+
+UENUM()
+enum class ETagMessageFilteredType : uint8
+{
+	Include,
+	Exclude,
+	None
+};
 /**
  * Component that implements the UnifyGameplayTagsInterface
  * Add this component to any actor that needs to work with gameplay tags
@@ -55,21 +63,15 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
 	FOnTagContainerChanged OnGameplayTagContainerChanged;
 
-	/** Delegate signature for message receive events */
+	/** Delegate signature for global message receive events */
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMessageReceiveDelegate, const FUnifyGameplayTag&, Message);
 
-	/** Delegate signature for genericmessage receive events */
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGenericMessageReceiveDelegate, const FInstancedStruct&, Message);
-
 	/** 
-	 * Delegate that is broadcast when receiving a message on the GameplayMessageTag channel 
+	 * Delegate that is broadcast when receiving a global message on the GameplayMessageTag channel 
 	 * @param Message The gameplay tag message received
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
 	FOnMessageReceiveDelegate OnMessageReceive;
-
-	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
-	FOnGenericMessageReceiveDelegate OnGenericMessageReceive;
 
 	/**
 	 * Broadcasts the current tags of this component as a message on the GameplayMessageTag channel
@@ -97,6 +99,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message")
 	FGameplayTag GameplayMessageTag;
 
+	/** Filtered Source Object Tags To Handle Message */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
+	FGameplayTagContainer FilteredSourceTags;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
+	ETagMessageFilteredType MessageFilteredType;
+
 	/** Optional payload for the event. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
 	FInstancedStruct MessageData;
@@ -109,7 +118,5 @@ protected:
 	 * @param Channel The channel the message was sent on
 	 * @param Message The message data received
 	 */
-	void HandleGameplayTagMessage(FGameplayTag Channel, const FUnifyGameplayTag& Message);
-	void HandleGameplayTagMessageGeneric(FGameplayTag Channel, const FInstancedStruct& Message);
-	friend class UUnifyGameplayTagsFunctionLibrary;
+	void HandleGameplayTagMessage(const FGameplayTag Channel, const FUnifyGameplayTag& Message);
 };

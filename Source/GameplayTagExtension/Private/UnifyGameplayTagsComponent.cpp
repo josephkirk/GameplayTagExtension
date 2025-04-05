@@ -55,16 +55,34 @@ void UUnifyGameplayTagsComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	Super::EndPlay(EndPlayReason);
 }
 
-void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(FGameplayTag Channel, const FUnifyGameplayTag& Message)
+void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(const FGameplayTag Channel, const FUnifyGameplayTag& Message)
 {
+	// Filter the message based on whether any tag in the source object's gameplay tags match the filtered tags
+	FGameplayTagContainer SourceTagContainer = Message.Tags;
+	bool bContainedAnyTag = SourceTagContainer.HasAny(FilteredSourceTags);
+
+	switch (MessageFilteredType)
+	{
+		case ETagMessageFilteredType::Exclude:
+			if (!bContainedAnyTag)
+			{
+				OnMessageReceive.Broadcast(Message);
+			}
+			return;
+		case ETagMessageFilteredType::Include:
+			if (bContainedAnyTag)
+			{
+				OnMessageReceive.Broadcast(Message);
+			}
+			return;
+		case ETagMessageFilteredType::None:
+			break;
+		default:
+		return;
+	}
+	
 	// Broadcast the entire message struct
 	OnMessageReceive.Broadcast(Message);
-}
-
-void UUnifyGameplayTagsComponent::HandleGameplayTagMessageGeneric(FGameplayTag Channel, const FInstancedStruct& Message)
-{
-	// Broadcast the entire message struct
-	OnGenericMessageReceive.Broadcast(Message);
 }
 
 void UUnifyGameplayTagsComponent::BroadcastMessage()
