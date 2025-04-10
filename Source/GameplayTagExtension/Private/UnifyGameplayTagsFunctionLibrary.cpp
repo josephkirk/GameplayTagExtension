@@ -8,9 +8,16 @@
 
 void UUnifyGameplayTagsFunctionLibrary::BroadcastGenericGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
 {
-    UGameplayMessageSubsystem* MessageSystem = Cast<UGameplayMessageSubsystem>(USubsystemBlueprintLibrary::GetWorldSubsystem( WorldContextObject, UGameplayMessageSubsystem::StaticClass()));
-	check(MessageSystem)
-    MessageSystem->BroadcastMessage(Channel, MessagePayload);
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World) {
+		return;
+	}
+	UGameplayMessageSubsystem* MessageSystem = UGameInstance::GetSubsystem<UGameplayMessageSubsystem>(World->GetGameInstance());
+	if (!MessageSystem)
+	{
+		return;
+	}
+	MessageSystem->BroadcastMessage(Channel, MessagePayload);
 }
 
 void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage( UObject* WorldContextObject,
