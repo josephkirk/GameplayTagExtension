@@ -4,6 +4,8 @@
 
 #include "Modules/ModuleManager.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogGameplayTagExtension, Log, All);
+
 class FGameplayTagExtensionModule : public IModuleInterface
 {
 public:

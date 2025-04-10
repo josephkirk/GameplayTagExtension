@@ -27,8 +27,7 @@ public class GameplayTagExtension : ModuleRules
 			{
 				"Core",
 				"Engine",
-				"GameplayTags",
-				"StructUtils"
+				"GameplayTags"
 			});
 			
 		
@@ -37,6 +36,7 @@ public class GameplayTagExtension : ModuleRules
 			{
 				"CoreUObject",
 				"GameplayMessageRuntime",
+				"EnhancedInput",
 			}
 			);
 		
