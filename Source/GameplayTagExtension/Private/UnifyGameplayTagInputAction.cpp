@@ -1,5 +1,5 @@
 #include "UnifyGameplayTagInputAction.h"
-
+#include "GameplayTagExtension.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UnifyGameplayTagInputAction)
 
 UUnifyGameplayTagInputConfig::UUnifyGameplayTagInputConfig(const FObjectInitializer& ObjectInitializer)

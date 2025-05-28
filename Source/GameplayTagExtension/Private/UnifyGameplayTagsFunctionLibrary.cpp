@@ -6,20 +6,6 @@
 #include "Subsystems/SubsystemBlueprintLibrary.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
-void UUnifyGameplayTagsFunctionLibrary::BroadcastGenericGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FInstancedStruct& MessagePayload)
-{
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
-	if (!World) {
-		return;
-	}
-	UGameplayMessageSubsystem* MessageSystem = UGameInstance::GetSubsystem<UGameplayMessageSubsystem>(World->GetGameInstance());
-	if (!MessageSystem)
-	{
-		return;
-	}
-	MessageSystem->BroadcastMessage(Channel, MessagePayload);
-}
-
 void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage( UObject* WorldContextObject,
     const FGameplayTag Channel, const FUnifyGameplayTag& Message)
 {

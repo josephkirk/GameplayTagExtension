@@ -18,7 +18,7 @@ struct GAMEPLAYTAGEXTENSION_API FUnifyGameplayTag
 
 	/** The object that broadcast the message */
 	UPROPERTY(BlueprintReadWrite, Category = "GameplayTags")
-	UObject* SourceObject = nullptr;
+	TObjectPtr<UObject> SourceObject = nullptr;
 
 	/** Optional payload for the event. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
