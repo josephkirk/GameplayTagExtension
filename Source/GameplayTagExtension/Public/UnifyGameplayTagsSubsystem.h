@@ -10,8 +10,18 @@
 class UUnifyGameplayTagsComponent;
 
 /**
- * World subsystem for managing UnifyGameplayTags components
- * Provides a central registry for UnifyGameplayTagsComponents in the world
+ * A delegate linked to a single event. Used to bind/unbind (subscribe/unsubscribe) an event to a global multicast event.
+ */
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FGameplayTagEventCallback, UObject*, Listener, UObject*, DataObject);
+
+/**
+ * A multicast delegate linked to many delegates. Used to call (publish) to every linked delegate associated to this multicast.
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameplayTagEventMulticast, UObject*, Dispatcher, UObject*, DataObject);
+
+/**
+ * World subsystem for managing UnifyGameplayTags components and global gameplay tag events
+ * Provides a central registry for UnifyGameplayTagsComponents in the world and a global event system using GameplayTags
  */
 UCLASS()
 class GAMEPLAYTAGEXTENSION_API UUnifyGameplayTagsSubsystem : public UWorldSubsystem
@@ -26,6 +36,7 @@ public:
 	virtual void Deinitialize() override;
 	// End USubsystem interface
 
+#pragma region Component Management
 	/**
 	 * Register a component with the subsystem
 	 * @param Component The component to register
@@ -64,8 +75,57 @@ public:
 	 * @return Array of components that have all of the specified tags
 	 */
 	TArray<UUnifyGameplayTagsComponent*> GetComponentsWithAllTags(const FGameplayTagContainer& Tags) const;
+#pragma endregion
+
+#pragma region Event System
+	/**
+	 * Bind a listener Object to a Gameplay Tag Event
+	 * @param Listener The object that will listen to the event (usually 'this')
+	 * @param EventTag The gameplay tag that identifies the event
+	 * @param Callback The function to call when the event is triggered
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events", meta = (DefaultToSelf = "Listener", HidePin = "Listener"))
+	void BindGameplayTagEvent(UObject* Listener, const FGameplayTag& EventTag, const FGameplayTagEventCallback& Callback);
+
+	/**
+	 * Get all objects listening to a specific gameplay tag event
+	 * @param EventTag The gameplay tag that identifies the event
+	 * @return Array of objects that are listening to the event
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events")
+	TArray<UObject*> GetGameplayTagEventListeners(const FGameplayTag& EventTag) const;
+
+	/**
+	 * Unbind a specific callback from a gameplay tag event
+	 * @param Event The callback to unbind
+	 * @param EventTag The gameplay tag that identifies the event
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events")
+	void UnbindGameplayTagEvent(const FGameplayTagEventCallback& Event, const FGameplayTag& EventTag);
+
+	/**
+	 * Unbind all callbacks from a specific object for a gameplay tag event
+	 * @param Listener The object whose callbacks should be unbound
+	 * @param EventTag The gameplay tag that identifies the event
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events")
+	void UnbindAllGameplayTagEvents(UObject* Listener, const FGameplayTag& EventTag);
+
+	/**
+	 * Trigger a gameplay tag event
+	 * @param Dispatcher The object that is dispatching the event (usually 'this')
+	 * @param EventTag The gameplay tag that identifies the event
+	 * @param DataObject Optional data to pass to the event listeners
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events", meta = (DefaultToSelf = "Dispatcher", HidePin = "Dispatcher"))
+	void TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, UObject* DataObject = nullptr);
+#pragma endregion
 
 private:
 	/** Array of registered components */
 	TArray<UUnifyGameplayTagsComponent*> RegisteredComponents;
+
+	/** Map that stores the Gameplay Tag Events */
+	UPROPERTY()
+	TMap<FGameplayTag, FGameplayTagEventMulticast> GameplayTagEventsMap;
 };

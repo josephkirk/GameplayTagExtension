@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
 #include "UnifyGameplayTagsInterface.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
+#include "UnifyGameplayTagsSubsystem.h"
 #include "UnifyGameplayTagsComponent.generated.h"
 
 
@@ -63,27 +63,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
 	FOnTagContainerChanged OnGameplayTagContainerChanged;
 
-	/** Delegate signature for global message receive events */
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMessageReceiveDelegate, const FUnifyGameplayTag&, Message);
-
-	/** 
-	 * Delegate that is broadcast when receiving a global message on the GameplayMessageTag channel 
-	 * @param Message The gameplay tag message received
-	 */
-	UPROPERTY(BlueprintAssignable, Category = "GameplayTags")
-	FOnMessageReceiveDelegate OnMessageReceive;
-
-	/**
-	 * Broadcasts the current tags of this component as a message on the GameplayMessageTag channel
-	 */
-	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
-	void BroadcastMessage();
-
-	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
-	void BroadcastMessageWithCustomData(FInstancedStruct Payload);
-
-	UFUNCTION(BlueprintCallable, Category = "GameplayTags")
-	void SetGameplayMessageTag(FGameplayTag MessageTag);
+	/** Delegate that is broadcast when receiving a gameplay tag event */
+	UPROPERTY(BlueprintAssignable, Category = "GameplayTags|Events")
+	FGameplayTagEventMulticast OnGameplayTagEventReceived;
 
 	// Begin UActorComponent interface
 	virtual void BeginPlay() override;
@@ -96,27 +78,39 @@ protected:
 	FGameplayTagContainer GameplayTagContainer;
 
 	/** The tag channel to listen to and broadcast on */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message", meta = (DisplayName = "Gameplay Message Tag"))
 	FGameplayTag GameplayMessageTag;
 
-	/** Filtered Source Object Tags To Handle Message */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
-	FGameplayTagContainer FilteredSourceTags;
+	/** 
+	 * Sets the gameplay message tag and updates the event binding
+	 * @param NewTag The new gameplay message tag to listen for
+	 */
+	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Message")
+	void SetGameplayMessageTag(const FGameplayTag& NewTag);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
-	ETagMessageFilteredType MessageFilteredType;
-
-	/** Optional payload for the event. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags|Message")
-	FInstancedStruct MessageData;
-
-	/** Handle for the registered message listener */
-	FGameplayMessageListenerHandle MessageListenerHandle;
+#if WITH_EDITOR
+	//~ Begin UObject Interface
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~ End UObject Interface
+#endif
 
 	/** 
-	 * Internal handler for when a gameplay tag message is received 
-	 * @param Channel The channel the message was sent on
-	 * @param Message The message data received
+	 * Internal handler for when a gameplay tag event is received 
+	 * @param Dispatcher The object that dispatched the event
+	 * @param DataObject Optional data object passed with the event
 	 */
-	void HandleGameplayTagMessage(const FGameplayTag Channel, const FUnifyGameplayTag& Message);
+	UFUNCTION()
+	void HandleGameplayTagEvent(UObject* Dispatcher, UObject* DataObject);
+
+	/** 
+	 * Updates the event binding to the current GameplayMessageTag 
+	 * @param bForceRebind If true, will rebind even if the tag hasn't changed
+	 */
+	void UpdateEventBinding(bool bForceRebind = false);
+
+	/** The last tag we were bound to */
+	FGameplayTag LastBoundMessageTag;
+	
+	/** The current event tag we're bound to */
+	FGameplayTag CurrentEventTag;
 };

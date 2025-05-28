@@ -23,9 +23,7 @@ class GAMEPLAYTAGEXTENSION_API UUnifyGameplayTagsFunctionLibrary : public UBluep
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintCallable, Category = "GameplayTags", meta=(WorldContext="WorldContextObject"))
-	static void BroadcastGameplayTagMessage( UObject* WorldContextObject,const FGameplayTag Channel, const FUnifyGameplayTag& Message);
-	
+
 	/** Get the gameplay tag component for the specified actor */
 	UFUNCTION(BlueprintPure, Category = "GameplayTags")
 	static UUnifyGameplayTagsComponent* GetGameplayTagComponent(const AActor* Actor);

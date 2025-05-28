@@ -2,28 +2,26 @@
 
 #include "UnifyGameplayTagsComponent.h"
 #include "UnifyGameplayTagsFunctionLibrary.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
 #include "UnifyGameplayTagsSubsystem.h"
+#include "GameplayTagExtension.h"
+#include "UObject/UnrealType.h"
+#include "Misc/AssertionMacros.h"
 
 // Sets default values for this component's properties
 UUnifyGameplayTagsComponent::UUnifyGameplayTagsComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.
+	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
+	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
+	
+	// Initialize the event tags as invalid
+	LastBoundMessageTag = FGameplayTag::EmptyTag;
+	CurrentEventTag = FGameplayTag::EmptyTag;
 }
 
 void UUnifyGameplayTagsComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	// Register for gameplay tag messages if we have a valid message tag
-	if (GameplayMessageTag.IsValid())
-	{
-		MessageListenerHandle = MessageSystem.RegisterListener<FUnifyGameplayTag>(
-			GameplayMessageTag,
-			this,
-			&UUnifyGameplayTagsComponent::HandleGameplayTagMessage);
-	}
 	
 	// Register this component with the UnifyGameplayTagsSubsystem
 	if (UWorld* World = GetWorld())
@@ -31,85 +29,115 @@ void UUnifyGameplayTagsComponent::BeginPlay()
 		if (UUnifyGameplayTagsSubsystem* Subsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>())
 		{
 			Subsystem->RegisterComponent(this);
+			// Update the event binding with the current tag
+			UpdateEventBinding();
 		}
 	}
 }
 
 void UUnifyGameplayTagsComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// Unregister the message listener
-	if (MessageListenerHandle.IsValid())
-	{
-		MessageListenerHandle.Unregister();
-	}
-	
 	// Unregister this component from the UnifyGameplayTagsSubsystem
 	if (UWorld* World = GetWorld())
 	{
 		if (UUnifyGameplayTagsSubsystem* Subsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>())
 		{
+			// Unbind from the current gameplay tag event
+			if (CurrentEventTag.IsValid())
+			{
+				Subsystem->UnbindAllGameplayTagEvents(this, CurrentEventTag);
+			}
+			
 			Subsystem->UnregisterComponent(this);
 		}
 	}
 
+	LastBoundMessageTag = FGameplayTag::EmptyTag;
+	CurrentEventTag = FGameplayTag::EmptyTag;
 	Super::EndPlay(EndPlayReason);
 }
 
-void UUnifyGameplayTagsComponent::HandleGameplayTagMessage(const FGameplayTag Channel, const FUnifyGameplayTag& Message)
+void UUnifyGameplayTagsComponent::SetGameplayMessageTag(const FGameplayTag& NewTag)
 {
-	// Filter the message based on whether any tag in the source object's gameplay tags match the filtered tags
-	FGameplayTagContainer SourceTagContainer = Message.Tags;
-	bool bContainedAnyTag = SourceTagContainer.HasAny(FilteredSourceTags);
-
-	switch (MessageFilteredType)
+	if (GameplayMessageTag != NewTag)
 	{
-		case ETagMessageFilteredType::Exclude:
-			if (!bContainedAnyTag)
-			{
-				OnMessageReceive.Broadcast(Message);
-			}
-			return;
-		case ETagMessageFilteredType::Include:
-			if (bContainedAnyTag)
-			{
-				OnMessageReceive.Broadcast(Message);
-			}
-			return;
-		case ETagMessageFilteredType::None:
-			break;
-		default:
-		return;
+		GameplayMessageTag = NewTag;
+		UpdateEventBinding(true); // Force rebind with the new tag
 	}
-	
-	// Broadcast the entire message struct
-	OnMessageReceive.Broadcast(Message);
 }
 
-void UUnifyGameplayTagsComponent::BroadcastMessage()
+void UUnifyGameplayTagsComponent::UpdateEventBinding(bool bForceRebind)
 {
-	BroadcastMessageWithCustomData(MessageData);
-}
-
-void UUnifyGameplayTagsComponent::BroadcastMessageWithCustomData(FInstancedStruct Payload)
-{
-	// Only broadcast if we have a valid message tag
-	if (!GameplayMessageTag.IsValid())
+	// Only proceed if we have a valid world and subsystem
+	UWorld* World = GetWorld();
+	if (!World || World->bIsTearingDown)
 	{
 		return;
 	}
-	
-	FUnifyGameplayTag Message;
-	Message.SourceObject = Cast<UObject>(GetOwner());
-	Message.Tags = GameplayTagContainer;
-	Message.Payload = Payload;
-	// Broadcast the message
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(GameplayMessageTag, Message);
+
+	UUnifyGameplayTagsSubsystem* Subsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>();
+	if (!Subsystem)
+	{
+		return;
+	}
+
+	// Check if we need to update the binding
+	const bool bTagChanged = (CurrentEventTag != GameplayMessageTag);
+	if (!bForceRebind && !bTagChanged)
+	{
+		return; // No need to update if the tag hasn't changed and we're not forcing a rebind
+	}
+
+	// Unbind from the previous tag if we have a valid tag
+	if (CurrentEventTag.IsValid())
+	{
+		Subsystem->UnbindAllGameplayTagEvents(this, CurrentEventTag);
+	}
+
+	// Bind to the new tag if it's valid
+	if (GameplayMessageTag.IsValid())
+	{
+		// Create a callback to our handler function
+		FGameplayTagEventCallback Callback;
+		Callback.BindUFunction(this, "HandleGameplayTagEvent");
+		
+		// Bind to the event
+		Subsystem->BindGameplayTagEvent(this, GameplayMessageTag, Callback);
+		
+		// Update the current and last bound tags
+		CurrentEventTag = GameplayMessageTag;
+		LastBoundMessageTag = GameplayMessageTag;
+	}
+	else
+	{
+		// Clear the current event tag if we're not binding to a valid tag
+		CurrentEventTag = FGameplayTag::EmptyTag;
+	}
 }
 
-void UUnifyGameplayTagsComponent::SetGameplayMessageTag(FGameplayTag MessageTag)
+#if WITH_EDITOR
+void UUnifyGameplayTagsComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	GameplayMessageTag = MessageTag;
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	// Check if the GameplayMessageTag property was modified
+	if (PropertyChangedEvent.Property && 
+		(PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UUnifyGameplayTagsComponent, GameplayMessageTag)))
+	{
+		// Only update if we're not in the game (PIE or standalone)
+		if (GIsEditor && !GIsPlayInEditorWorld && !IsRunningGame())
+		{
+			// Force an update of the binding
+			UpdateEventBinding(true);
+		}
+	}
+}
+#endif
+
+void UUnifyGameplayTagsComponent::HandleGameplayTagEvent(UObject* Dispatcher, UObject* DataObject)
+{
+	// Broadcast the event to any bound delegates
+	OnGameplayTagEventReceived.Broadcast(Dispatcher, DataObject);
 }
 
 FGameplayTagContainer UUnifyGameplayTagsComponent::GetGameplayTagContainer_Implementation() const

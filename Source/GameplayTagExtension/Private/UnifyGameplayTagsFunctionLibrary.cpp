@@ -4,14 +4,6 @@
 #include "UnifyGameplayTagsComponent.h"
 #include "Engine/Engine.h"
 #include "Subsystems/SubsystemBlueprintLibrary.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
-
-void UUnifyGameplayTagsFunctionLibrary::BroadcastGameplayTagMessage( UObject* WorldContextObject,
-    const FGameplayTag Channel, const FUnifyGameplayTag& Message)
-{
-    UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(WorldContextObject);
-    MessageSystem.BroadcastMessage(Channel, Message);
-}
 
 UUnifyGameplayTagsComponent* UUnifyGameplayTagsFunctionLibrary::GetGameplayTagComponent(const AActor* Actor)
 {
