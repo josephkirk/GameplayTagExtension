@@ -1,5 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
 #include "GameplayTagExtension.h"
 
 #define LOCTEXT_NAMESPACE "FGameplayTagExtensionModule"

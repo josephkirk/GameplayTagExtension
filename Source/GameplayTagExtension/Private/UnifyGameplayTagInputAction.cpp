@@ -1,3 +1,5 @@
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
+
 #include "UnifyGameplayTagInputAction.h"
 #include "GameplayTagExtension.h"
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UnifyGameplayTagInputAction)

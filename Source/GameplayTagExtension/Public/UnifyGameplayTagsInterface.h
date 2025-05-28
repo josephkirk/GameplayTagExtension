@@ -1,5 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
 #pragma once
 
 #include "CoreMinimal.h"
@@ -12,7 +11,7 @@
  * Message struct for UnifyGameplayTags communication
  */
 USTRUCT(BlueprintType)
-struct GAMEPLAYTAGEXTENSION_API FUnifyGameplayTag
+struct GAMEPLAYTAGEXTENSION_API FGameplayTageMessageData
 {
 	GENERATED_BODY()
 

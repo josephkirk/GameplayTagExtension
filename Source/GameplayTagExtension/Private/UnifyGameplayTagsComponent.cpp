@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
 
 #include "UnifyGameplayTagsComponent.h"
 #include "UnifyGameplayTagsFunctionLibrary.h"
@@ -134,10 +134,10 @@ void UUnifyGameplayTagsComponent::PostEditChangeProperty(FPropertyChangedEvent& 
 }
 #endif
 
-void UUnifyGameplayTagsComponent::HandleGameplayTagEvent(UObject* Dispatcher, UObject* DataObject)
+void UUnifyGameplayTagsComponent::HandleGameplayTagEvent(UObject* Dispatcher, FGameplayTageMessageData& Data)
 {
 	// Broadcast the event to any bound delegates
-	OnGameplayTagEventReceived.Broadcast(Dispatcher, DataObject);
+	OnGameplayTagEventReceived.Broadcast(Dispatcher, Data);
 }
 
 FGameplayTagContainer UUnifyGameplayTagsComponent::GetGameplayTagContainer_Implementation() const

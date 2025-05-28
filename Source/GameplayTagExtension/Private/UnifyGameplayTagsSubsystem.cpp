@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
 
 #include "UnifyGameplayTagsSubsystem.h"
 #include "UnifyGameplayTagsComponent.h"
@@ -122,14 +122,14 @@ void UUnifyGameplayTagsSubsystem::UnbindAllGameplayTagEvents(UObject* Listener, 
 	}
 }
 
-void UUnifyGameplayTagsSubsystem::TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, UObject* DataObject)
+void UUnifyGameplayTagsSubsystem::TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, FGameplayTageMessageData Data)
 {
 	if (EventTag.IsValid())
 	{
 		if (FGameplayTagEventMulticast* MulticastDelegate = GameplayTagEventsMap.Find(EventTag))
 		{
 			// Broadcast the event to all bound delegates
-			MulticastDelegate->Broadcast(Dispatcher, DataObject);
+			MulticastDelegate->Broadcast(Dispatcher, Data);
 		}
 	}
 }

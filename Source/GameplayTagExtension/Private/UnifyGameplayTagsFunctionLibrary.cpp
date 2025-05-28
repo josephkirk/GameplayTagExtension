@@ -1,3 +1,5 @@
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
+
 #include "UnifyGameplayTagsFunctionLibrary.h"
 
 #include "EngineUtils.h"

@@ -1,23 +1,24 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameplayTags.h"
+#include "UnifyGameplayTagsInterface.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "UnifyGameplayTagsSubsystem.generated.h"
 
 class UUnifyGameplayTagsComponent;
-
+struct FGameplayTageMessageData;
 /**
  * A delegate linked to a single event. Used to bind/unbind (subscribe/unsubscribe) an event to a global multicast event.
  */
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FGameplayTagEventCallback, UObject*, Listener, UObject*, DataObject);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FGameplayTagEventCallback, UObject*, Listener, FGameplayTageMessageData, Data);
 
 /**
  * A multicast delegate linked to many delegates. Used to call (publish) to every linked delegate associated to this multicast.
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameplayTagEventMulticast, UObject*, Dispatcher, UObject*, DataObject);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameplayTagEventMulticast, UObject*, Dispatcher, FGameplayTageMessageData, Data);
 
 /**
  * World subsystem for managing UnifyGameplayTags components and global gameplay tag events
@@ -118,7 +119,7 @@ public:
 	 * @param DataObject Optional data to pass to the event listeners
 	 */
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events", meta = (DefaultToSelf = "Dispatcher", HidePin = "Dispatcher"))
-	void TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, UObject* DataObject = nullptr);
+	void TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, FGameplayTageMessageData Data);
 #pragma endregion
 
 private:

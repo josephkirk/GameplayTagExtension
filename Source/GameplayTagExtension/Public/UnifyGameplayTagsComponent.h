@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright 2025 Nguyen Phi Hung. All Rights Reserved.
 
 #pragma once
 
@@ -100,7 +100,7 @@ protected:
 	 * @param DataObject Optional data object passed with the event
 	 */
 	UFUNCTION()
-	void HandleGameplayTagEvent(UObject* Dispatcher, UObject* DataObject);
+	void HandleGameplayTagEvent(UObject* Dispatcher, FGameplayTageMessageData& Data);
 
 	/** 
 	 * Updates the event binding to the current GameplayMessageTag 
