@@ -6,10 +6,6 @@
 #include "UObject/UObjectIterator.h"   // For finding the subsystem instance
 #include "Engine/GameInstance.h"       // For GetGameInstance()
 
-// It's good practice to define a log category for your module
-// DECLARE_LOG_CATEGORY_EXTERN(LogGameplayTagValue, Log, All); // This would go in a shared header like GameplayTagValue.h
-// DEFINE_LOG_CATEGORY(LogGameplayTagValue); // This would go in a .cpp, perhaps GameplayTagValueModule.cpp
-
 void UGameplayTagValueSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
