@@ -3,9 +3,6 @@
 #include "FMemoryTagValueRepository.h" // Corresponding header
 #include "UObject/StructOnScope.h"     // For FInstancedStruct methods
 
-// It's good practice to define a log category for your module
-// DECLARE_LOG_CATEGORY_EXTERN(LogGameplayTagValue, Log, All); // This would go in a shared header like GameplayTagValue.h
-// DEFINE_LOG_CATEGORY(LogGameplayTagValue); // This would go in a .cpp, perhaps GameplayTagValueModule.cpp
 
 FMemoryTagValueRepository::FMemoryTagValueRepository(FName InRepositoryName, int32 InPriority)
     : RepositoryName(InRepositoryName)

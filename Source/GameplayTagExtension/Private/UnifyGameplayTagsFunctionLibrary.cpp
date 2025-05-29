@@ -4,6 +4,7 @@
 
 #include "EngineUtils.h"
 #include "UnifyGameplayTagsComponent.h"
+#include "UnifyGameplayTagsSubsystem.h"
 #include "Engine/Engine.h"
 #include "Subsystems/SubsystemBlueprintLibrary.h"
 
@@ -43,16 +44,18 @@ void UUnifyGameplayTagsFunctionLibrary::GetAllActorsWithGameplayTags(const UObje
 		return;
 	}
 	
-	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 	{
-		for (FActorIterator It(World); It; ++It)
+		if (UUnifyGameplayTagsSubsystem* GameplayTagsSubsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>())
 		{
-			AActor* Actor = *It;
-			UUnifyGameplayTagsComponent* Component = GetGameplayTagComponent(Actor);
-            if (Component && Component->HasAnyGameplayTags(TagsToCheck))
-            {
-                OutActors.Add(Actor);
-            }
+			TArray<UUnifyGameplayTagsComponent*> Components = GameplayTagsSubsystem->GetComponentsWithAnyTags(TagsToCheck);
+			for (UUnifyGameplayTagsComponent* Component : Components)
+			{
+				if (Component)
+				{
+					OutActors.Add(Component->GetOwner());
+				}
+			}
 		}
 	}
 }
@@ -63,21 +66,25 @@ void UUnifyGameplayTagsFunctionLibrary::GetAllActorsOfClassWithGameplayTags(cons
 	OutActors.Reset();
 
 	// We do nothing if no tag is provided, rather than giving ALL actors!
-	if (TagsToCheck.IsEmpty())
+	if (TagsToCheck.IsEmpty() || !ActorClass)
 	{
 		return;
 	}
-	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+
+	if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
 	{
-		for (TActorIterator<AActor> It(World, ActorClass); It; ++It)
+		if (UUnifyGameplayTagsSubsystem* GameplayTagsSubsystem = World->GetSubsystem<UUnifyGameplayTagsSubsystem>())
 		{
-			AActor* Actor = *It;
-			if (Actor->IsA(ActorClass))
+			TArray<UUnifyGameplayTagsComponent*> Components = GameplayTagsSubsystem->GetComponentsWithAnyTags(TagsToCheck);
+			for (UUnifyGameplayTagsComponent* Component : Components)
 			{
-				UUnifyGameplayTagsComponent* Component = GetGameplayTagComponent(Actor);
-				if (Component && Component->HasAnyGameplayTags(TagsToCheck))
+				if (Component)
 				{
-					OutActors.Add(Actor);
+					AActor* OwnerActor = Component->GetOwner();
+					if (OwnerActor && OwnerActor->IsA(ActorClass))
+					{
+						OutActors.Add(OwnerActor);
+					}
 				}
 			}
 		}

@@ -55,5 +55,17 @@ public:
     static void RunGameplayTagOperationOnActor(const UObject* WorldContextObject, const AActor* Actor, const FGameplayTagContainer Tags, ETagChangeType OperationType, FGameplayTagContainer& OutContainer, bool& bSuccess);
 
     /** create event dispatched on actor on gameplaytag change*/
-    
+protected:
+	static UUnifyGameplayTagsSubsystem* GetUnifyGameplayTagsSubsystem()
+	{
+		if (
+			GEngine->GameViewport
+			&&
+			GEngine->GameViewport->GetWorld()
+		) {
+			return GEngine->GameViewport->GetWorld()->GetSubsystem<UUnifyGameplayTagsSubsystem>();
+		}
+		
+		return nullptr;
+	}
 };
