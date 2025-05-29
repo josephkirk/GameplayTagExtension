@@ -1,4 +1,4 @@
-// Copyright Windsurf Engineering, 2025. All Rights Reserved.
+// Copyright Nguyen Phi Hung 2025. All Rights Reserved.
 
 #include "FMemoryTagValueRepository.h" // Corresponding header
 #include "UObject/StructOnScope.h"     // For FInstancedStruct methods
