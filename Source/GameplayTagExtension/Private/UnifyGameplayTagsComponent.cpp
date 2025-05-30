@@ -102,7 +102,7 @@ void UUnifyGameplayTagsComponent::UpdateEventBinding(bool bForceRebind)
 		Callback.BindUFunction(this, "HandleGameplayTagEvent");
 		
 		// Bind to the event
-		Subsystem->BindGameplayTagEvent(this, GameplayMessageTag, Callback);
+		Subsystem->BindGameplayTagEvent(this, GameplayMessageTag, Callback, GameplayMessageFilteredTag);
 		
 		// Update the current and last bound tags
 		CurrentEventTag = GameplayMessageTag;
@@ -134,7 +134,7 @@ void UUnifyGameplayTagsComponent::PostEditChangeProperty(FPropertyChangedEvent& 
 }
 #endif
 
-void UUnifyGameplayTagsComponent::HandleGameplayTagEvent(UObject* Dispatcher, FGameplayTageMessageData& Data)
+void UUnifyGameplayTagsComponent::HandleGameplayTagEvent(UObject* Dispatcher, FGameplayTagMessageData& Data)
 {
 	// Broadcast the event to any bound delegates
 	OnGameplayTagEventReceived.Broadcast(Dispatcher, Data);

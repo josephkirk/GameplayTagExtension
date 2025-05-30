@@ -78,8 +78,12 @@ protected:
 	FGameplayTagContainer GameplayTagContainer;
 
 	/** The tag channel to listen to and broadcast on */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message", meta = (DisplayName = "Gameplay Message Tag"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message", meta = (DisplayName = "GameplayTag Event Tag"))
 	FGameplayTag GameplayMessageTag;
+
+	/** The tag channel to listen to and broadcast on */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameplayTags|Message", meta = (DisplayName = "GameplayTag Event Channel"))
+	FGameplayTagContainer GameplayMessageFilteredTag;
 
 	/** 
 	 * Sets the gameplay message tag and updates the event binding
@@ -100,7 +104,7 @@ protected:
 	 * @param DataObject Optional data object passed with the event
 	 */
 	UFUNCTION()
-	void HandleGameplayTagEvent(UObject* Dispatcher, FGameplayTageMessageData& Data);
+	void HandleGameplayTagEvent(UObject* Dispatcher, FGameplayTagMessageData& Data);
 
 	/** 
 	 * Updates the event binding to the current GameplayMessageTag 

@@ -41,7 +41,11 @@ void UUnifyGameplayTagsSubsystem::UnregisterComponent(UUnifyGameplayTagsComponen
 		// Remove all event bindings for this component
 		for (auto& EventPair : GameplayTagEventsMap)
 		{
-			EventPair.Value.RemoveAll(Component);
+			TArray<FGameplayTagEventListener>& ListenersArray = EventPair.Value.Listeners;
+			ListenersArray.RemoveAll([Component](const FGameplayTagEventListener& ListenerEntry)
+			{
+				return ListenerEntry.Callback.IsBoundToObject(Component);
+			});
 		}
 	}
 }
@@ -85,51 +89,76 @@ TArray<UUnifyGameplayTagsComponent*> UUnifyGameplayTagsSubsystem::GetComponentsW
 	return Result;
 }
 
-void UUnifyGameplayTagsSubsystem::BindGameplayTagEvent(UObject* Listener, const FGameplayTag& EventTag, const FGameplayTagEventCallback& Callback)
+void UUnifyGameplayTagsSubsystem::BindGameplayTagEvent(UObject* Listener, const FGameplayTag& EventTag, const FGameplayTagEventCallback& Callback, const FGameplayTagContainer& ListenerFilterTags)
 {
-	if (Listener && EventTag.IsValid())
+	if (Listener && EventTag.IsValid() && Callback.IsBound())
 	{
-		// Find or add the multicast delegate for this event tag
-		FGameplayTagEventMulticast& MulticastDelegate = GameplayTagEventsMap.FindOrAdd(EventTag);
-		
-		// Add the callback to the multicast delegate
-		MulticastDelegate.Add(Callback);
+		TArray<FGameplayTagEventListener>& ListenersArray = GameplayTagEventsMap.FindOrAdd(EventTag).Listeners;
+		// Add a new listener entry, ensuring no duplicates for the same callback
+		ListenersArray.AddUnique(FGameplayTagEventListener(Callback, ListenerFilterTags));
 	}
 }
 
 TArray<UObject*> UUnifyGameplayTagsSubsystem::GetGameplayTagEventListeners(const FGameplayTag& EventTag) const
 {
-	if (const FGameplayTagEventMulticast* MulticastDelegate = GameplayTagEventsMap.Find(EventTag))
+	TArray<UObject*> Result;
+	if (const FGameplayTagEventListenerArrayWrapper* WrapperPtr = GameplayTagEventsMap.Find(EventTag))
 	{
-		return MulticastDelegate->GetAllObjects();
+		for (const FGameplayTagEventListener& ListenerEntry : WrapperPtr->Listeners)
+		{
+			if (ListenerEntry.Callback.IsBound())
+			{
+				Result.Add(const_cast<UObject*>(ListenerEntry.Callback.GetUObject()));
+			}
+		}
 	}
-	return TArray<UObject*>();
+	return Result;
 }
 
 void UUnifyGameplayTagsSubsystem::UnbindGameplayTagEvent(const FGameplayTagEventCallback& Event, const FGameplayTag& EventTag)
 {
-	if (FGameplayTagEventMulticast* MulticastDelegate = GameplayTagEventsMap.Find(EventTag))
+	if (FGameplayTagEventListenerArrayWrapper* Wrapper = GameplayTagEventsMap.Find(EventTag))
 	{
-		MulticastDelegate->Remove(Event);
+		// Create a temporary FGameplayTagEventListener to use the operator== for removal
+		// The ListenerFilterTags part of FGameplayTagEventListener doesn't matter for this comparison
+		Wrapper->Listeners.Remove(FGameplayTagEventListener(Event, FGameplayTagContainer()));
 	}
 }
 
 void UUnifyGameplayTagsSubsystem::UnbindAllGameplayTagEvents(UObject* Listener, const FGameplayTag& EventTag)
 {
-	if (FGameplayTagEventMulticast* MulticastDelegate = GameplayTagEventsMap.Find(EventTag))
+	if (FGameplayTagEventListenerArrayWrapper* Wrapper = GameplayTagEventsMap.Find(EventTag))
 	{
-		MulticastDelegate->RemoveAll(Listener);
+		Wrapper->Listeners.RemoveAll([Listener](const FGameplayTagEventListener& ListenerEntry)
+		{
+			return ListenerEntry.Callback.IsBoundToObject(Listener);
+		});
 	}
 }
 
-void UUnifyGameplayTagsSubsystem::TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, FGameplayTageMessageData Data)
+void UUnifyGameplayTagsSubsystem::TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag EventTag, FGameplayTagMessageData Data, const FGameplayTagContainer EventPayloadTags)
 {
 	if (EventTag.IsValid())
 	{
-		if (FGameplayTagEventMulticast* MulticastDelegate = GameplayTagEventsMap.Find(EventTag))
+		if (FGameplayTagEventListenerArrayWrapper* WrapperPtr = GameplayTagEventsMap.Find(EventTag))
 		{
-			// Broadcast the event to all bound delegates
-			MulticastDelegate->Broadcast(Dispatcher, Data);
+			// Create a copy of the listeners array to avoid issues if a callback modifies the original array (e.g., unbinds itself)
+			TArray<FGameplayTagEventListener> ListenersCopy = WrapperPtr->Listeners;
+			for (const FGameplayTagEventListener& ListenerEntry : ListenersCopy)
+			{
+				if (ListenerEntry.Callback.IsBound())
+				{
+					// Check if the listener's filter tags are met by the event's payload tags
+					// An empty ListenerFilterTags means it accepts all events for this EventTag.
+					// Otherwise, EventPayloadTags must contain all tags in ListenerFilterTags.
+					bool bFilterPassed = ListenerEntry.ListenerFilterTags.IsEmpty() || EventPayloadTags.HasAll(ListenerEntry.ListenerFilterTags);
+
+					if (bFilterPassed)
+					{
+						ListenerEntry.Callback.ExecuteIfBound(Dispatcher, Data);
+					}
+				}
+			}
 		}
 	}
 }

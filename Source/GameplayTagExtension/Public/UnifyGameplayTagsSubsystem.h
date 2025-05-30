@@ -9,16 +9,59 @@
 #include "UnifyGameplayTagsSubsystem.generated.h"
 
 class UUnifyGameplayTagsComponent;
-struct FGameplayTageMessageData;
+struct FGameplayTagMessageData;
 /**
  * A delegate linked to a single event. Used to bind/unbind (subscribe/unsubscribe) an event to a global multicast event.
  */
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FGameplayTagEventCallback, UObject*, Listener, FGameplayTageMessageData, Data);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FGameplayTagEventCallback, UObject*, Listener, FGameplayTagMessageData, Data);
 
 /**
  * A multicast delegate linked to many delegates. Used to call (publish) to every linked delegate associated to this multicast.
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameplayTagEventMulticast, UObject*, Dispatcher, FGameplayTageMessageData, Data);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameplayTagEventMulticast, UObject*, Dispatcher, FGameplayTagMessageData, Data);
+
+/**
+ * Structure to hold a gameplay tag event callback and its associated filter tags.
+ */
+USTRUCT()
+struct FGameplayTagEventListener
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FGameplayTagEventCallback Callback;
+
+	UPROPERTY()
+	FGameplayTagContainer ListenerFilterTags;
+
+	FGameplayTagEventListener()
+	{}
+
+	FGameplayTagEventListener(const FGameplayTagEventCallback& InCallback, const FGameplayTagContainer& InFilterTags)
+		: Callback(InCallback), ListenerFilterTags(InFilterTags)
+	{}
+
+	// Equality operator for TArray::Remove specific callback
+	bool operator==(const FGameplayTagEventListener& Other) const
+	{
+		return Callback == Other.Callback;
+	}
+};
+
+/**
+ * Wrapper struct for TArray<FGameplayTagEventListener> to be used as a TMap value with UPROPERTY.
+ */
+USTRUCT()
+struct FGameplayTagEventListenerArrayWrapper
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FGameplayTagEventListener> Listeners;
+
+	FGameplayTagEventListenerArrayWrapper()
+	{}
+};
 
 /**
  * World subsystem for managing UnifyGameplayTags components and global gameplay tag events
@@ -86,7 +129,7 @@ public:
 	 * @param Callback The function to call when the event is triggered
 	 */
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events", meta = (DefaultToSelf = "Listener", HidePin = "Listener"))
-	void BindGameplayTagEvent(UObject* Listener, const FGameplayTag& EventTag, const FGameplayTagEventCallback& Callback);
+	void BindGameplayTagEvent(UObject* Listener, const FGameplayTag& EventTag, const FGameplayTagEventCallback& Callback, const FGameplayTagContainer& ListenerFilterTags);
 
 	/**
 	 * Get all objects listening to a specific gameplay tag event
@@ -119,7 +162,7 @@ public:
 	 * @param DataObject Optional data to pass to the event listeners
 	 */
 	UFUNCTION(BlueprintCallable, Category = "GameplayTags|Events", meta = (DefaultToSelf = "Dispatcher", HidePin = "Dispatcher"))
-	void TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag& EventTag, FGameplayTageMessageData Data);
+	void TriggerGameplayTagEvent(UObject* Dispatcher, const FGameplayTag EventTag, FGameplayTagMessageData Data, const FGameplayTagContainer EventPayloadTags = FGameplayTagContainer());
 #pragma endregion
 
 private:
@@ -127,6 +170,7 @@ private:
 	TArray<UUnifyGameplayTagsComponent*> RegisteredComponents;
 
 	/** Map that stores the Gameplay Tag Events */
+	/** Map that stores arrays of gameplay tag event listeners, keyed by event tag. */
 	UPROPERTY()
-	TMap<FGameplayTag, FGameplayTagEventMulticast> GameplayTagEventsMap;
+	TMap<FGameplayTag, FGameplayTagEventListenerArrayWrapper> GameplayTagEventsMap;
 };

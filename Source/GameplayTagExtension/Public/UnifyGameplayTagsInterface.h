@@ -11,7 +11,7 @@
  * Message struct for UnifyGameplayTags communication
  */
 USTRUCT(BlueprintType)
-struct GAMEPLAYTAGEXTENSION_API FGameplayTageMessageData
+struct GAMEPLAYTAGEXTENSION_API FGameplayTagMessageData
 {
 	GENERATED_BODY()
 
